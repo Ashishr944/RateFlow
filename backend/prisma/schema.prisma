@@ -1,0 +1,58 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  USER
+  OWNER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String   // Min 20, Max 60 chars (Enforced in application level)
+  email     String   @unique
+  password  String
+  address   String   // Max 400 chars (Enforced in application level)
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  ratings   Rating[]
+  store     Store?   @relation("StoreToOwner")
+}
+
+model Store {
+  id        String   @id @default(uuid())
+  name      String   // Min 20, Max 60 chars
+  email     String   @unique
+  address   String   // Max 400 chars
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Owner relation
+  ownerId   String?  @unique
+  owner     User?    @relation("StoreToOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  // Ratings relation
+  ratings   Rating[]
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  rating    Int      // 1 to 5
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, storeId]) // Ensure one rating per user per store
+}
