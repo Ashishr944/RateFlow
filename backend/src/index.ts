@@ -40,6 +40,16 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/owner', ownerRoutes);
 
+// Root endpoint for browsers and deployment checks
+app.get('/', (req, res) => {
+  res.json({
+    name: 'RateFlow API',
+    status: 'ok',
+    health: '/health',
+    routes: ['/api/auth', '/api/admin', '/api/user', '/api/owner']
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });
